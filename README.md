@@ -1,35 +1,52 @@
+This project holds two simple utilities that are useful to test command-line
+tools such as compiler in a convenient way. They are written in pure OCaml and
+should work on any Unix platform that supports the base OCaml system.
 
-Utilitaire split :
-==================
+To compile, assuming ocamlbuild is installed, just type `make`.
 
-Usage :  `split fichier1.split fichier2.split ...`
-coupe un fichier en plusieurs.
+# Description
 
-La syntaxe des fichiers est :
-${ preambule $} preambule à mettre au début de chaque fichier
-$ 		point de coupure
-$$ 		commentaire jusqu'à la fin de la ligne
-$$$label	change le label des fichiers créés
-(ignore la fin de la ligne)
+All the utilities can deal with multiple files as command-line arguments.
 
-Le nom des fichiers créés est <fichier>-<num>-<label>-testgen.ls.
-Les fichiers sont créés dans le répertoire du fichier source.
+## split utility
 
-Bug: il n'est pas prévu de pouvoir créer un fichier avec un '$' dedans.
+Usage: `split FILE.split` cuts FILE.split into multiple parcels, each of them
+stored within a new file. The N-th parcel is stored into a file in the current
+directory named
 
+```
+  FILE-N(-LABEL)-SUFFIX.EXT
+```
 
-Utilitaire run_test :
-=====================
+where SUFFIX and EXT are controlled by command-line arguments and the LABEL part
+is optional. The contents and labels of each parcel are determined by the
+contents of file.split according to the following syntax.
 
-Usage : `./tools/run_test file1.ls file2.ls ...`
+- `$` indicates the start of a new parcel.
 
-Test la compilation des fichier file1.ls, ...
-Les compilateurs à utiliser et les résultats attendu sont spécifiés
-dans les fichiers à compiler. La syntaxe de descrition des tests est
-la suivante :
+- `${ preamble $}` indicates that "preamble" is to be copied at the beginning of
+  each subsequent parcel.
+
+- `$$` indicates the start of a new parcel and marks the rest of the line as a
+  comment.
+
+- `$$$word` indicates the start of a new parcel and sets the current label to
+  "word".
+
+A known limitation is that it is not currently possible to create a parcel
+containing the '$' character.
+
+## run_test utility
+
+Usage: `run_test file.ls` runs a command-line program, typically a compiler, on
+file.ls and checks that the results are as expected. The program to run and its
+results are specified inside the files using the following syntax.
+
+```
   run_test:
    [ Good: "compiler1"
      Bad n: "compiler2"
      Bad n "regexp": "compiler3"
      Warning: "compiler4"
      Warning "regexp": "compiler5"  ]
+```
